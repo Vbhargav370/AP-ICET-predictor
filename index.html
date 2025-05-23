@@ -1431,31 +1431,14 @@
         </section>
         
         <section class="results-section">
+          <div class="results-header"><h2>Check Your College Using Rank & Category</h2></div>
           <div class="results-header">
             <h2><i class="fas fa-list-alt"></i> Results</h2>
             <button id="downloadBtn" class="download-btn" style="display: none;">
               <i class="fas fa-download"></i> Download PDF
             </button>
           </div>
-          <div class="prediction-note">
-            <h3><i class="fas fa-info-circle"></i> Note:</h3>
-            <ul>
-              <li>The data presented is based on AP ICET 2024 final seat allotment and confirmed student admissions.</li>
-              <li>Ranks shown represent the ranks of students who joined each college/course through AP ICET Web Counseling.</li>
-              <li>Values marked as 0 indicate either:
-                <ul>
-                  <li>No students joined in that category through ICET, or</li>
-                  <li>The college/course had no ICET-based admissions and might have filled seats via Management Quota (Category-B).</li>
-                </ul>
-              </li>
-              <li>This data does not include special reservation category admissions like PH, NCC, Sports, CAP, etc.</li>
-              <li>Dropouts and spot admissions are not reflected in this data.</li>
-              <li>The data is provided only for information and reference, and does not guarantee admissions in the current or upcoming year.</li>
-              <li>While efforts have been made to ensure accuracy, we are not responsible for minor errors or omissions.</li>
-            </ul>
-            <p>Please Subscribe for More Updates: <a href="https://www.youtube.com/c/BhargavsBuzz" target="_blank" rel="noopener noreferrer">https://www.youtube.com/c/BhargavsBuzz</a></p>
-          </div>
-          <div class="results-container">
+                    <div class="results-container">
             <div id="noResults" class="no-results" style="display: none;">
               <i class="fas fa-university"></i>
               <h3>No Colleges Found</h3>
@@ -1475,7 +1458,26 @@
               </thead>
               <tbody id="resultsTableBody"></tbody>
             </table>
+          </div><br>
+          <div class="prediction-note">
+            <h3><i class="fas fa-info-circle"></i> Note:</h3>
+            <ul>
+              <li>The data presented is based on AP ICET 2024 final seat allotment and confirmed student admissions.</li>
+              <li>Ranks shown represent the ranks of students who joined each college/course through AP ICET Web Counseling.</li>
+              <li>Values marked as 0 indicate either:
+                <ul>
+                  <li>No students joined in that category through ICET, or</li>
+                  <li>The college/course had no ICET-based admissions and might have filled seats via Management Quota (Category-B).</li>
+                </ul>
+              </li>
+              <li>This data does not include special reservation category admissions like PH, NCC, Sports, CAP, etc.</li>
+              <li>Dropouts and spot admissions are not reflected in this data.</li>
+              <li>The data is provided only for information and reference, and does not guarantee admissions in the current or upcoming year.</li>
+              <li>While efforts have been made to ensure accuracy, we are not responsible for minor errors or omissions.</li>
+            </ul>
+            <p>Please Subscribe for More Updates: <a href="https://www.youtube.com/c/BhargavsBuzz" target="_blank" rel="noopener noreferrer">https://www.youtube.com/c/BhargavsBuzz</a></p>
           </div>
+
         </section>
       </div>
       
@@ -50314,18 +50316,30 @@ document.getElementById("predictionForm")?.addEventListener("submit", function (
 // PDF download functionality
 document.getElementById("downloadBtn").addEventListener("click", function () {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
+
+  // Page dimensions (A4: 210mm x 297mm, with margins)
+  const pageHeight = 297;
+  const margin = 20;
+  const maxContentHeight = pageHeight - margin * 2; // Usable height per page
+  let y = 130; // Starting y position for table
+  const rowHeight = 10; // Height per row
+  const headerHeight = 10; // Height for headers
 
   // Add watermark
   doc.setFontSize(40);
   doc.setTextColor(200, 200, 200);
-  doc.setFont("Poppins", "normal");
+  doc.setFont("Helvetica", "normal"); // Changed to Helvetica for reliability
   doc.text("Bhargav'z Buzz", 20, 200, { angle: 45 });
 
   // Add title
   doc.setFontSize(20);
   doc.setTextColor(33, 37, 41);
-  doc.text("AP ICET College Prediction Results", 20, 20);
+  doc.text("AP ICET College Prediction Results", margin, 20);
 
   // Add input parameters
   const rank = document.getElementById("icetRank").value;
@@ -50338,33 +50352,58 @@ document.getElementById("downloadBtn").addEventListener("click", function () {
   const collegeType = document.getElementById("collegeType").value;
 
   doc.setFontSize(12);
-  doc.text(`ICET Rank: ${rank}`, 20, 40);
-  doc.text(`Category: ${category}`, 20, 50);
-  doc.text(`Rank Type: ${rankType}`, 20, 60);
-  doc.text(`Course Type: ${courseType}`, 20, 70);
-  doc.text(`District: ${district}`, 20, 80);
-  doc.text(`Region: ${region}`, 20, 90);
-  doc.text(`Affiliated To: ${university}`, 20, 100);
-  doc.text(`College Type: ${collegeType}`, 20, 110);
+  doc.setTextColor(33, 37, 41);
+  doc.text(`ICET Rank: ${rank}`, margin, 40);
+  doc.text(`Category: ${category}`, margin, 50);
+  doc.text(`Rank Type: ${rankType}`, margin, 60);
+  doc.text(`Course Type: ${courseType}`, margin, 70);
+  doc.text(`District: ${district}`, margin, 80);
+  doc.text(`Region: ${region}`, margin, 90);
+  doc.text(`Affiliated To: ${university}`, margin, 100);
+  doc.text(`College Type: ${collegeType}`, margin, 110);
 
   // Add table headers
-  doc.setFontSize(12);
   const headers = ["Institute Code", "Institute Name", "District", "Region", "Rank", "Course"];
-  let y = 130;
-  headers.forEach((header, index) => {
-    doc.text(header, 20 + index * 30, y);
-  });
+  const columnWidths = [30, 50, 30, 30, 30, 30]; // Adjust column widths for better spacing
+
+  function drawHeaders() {
+    doc.setFontSize(12);
+    doc.setTextColor(33, 37, 41);
+    doc.setFont("Helvetica", "bold");
+    headers.forEach((header, index) => {
+      doc.text(header, margin + columnWidths.slice(0, index).reduce((a, b) => a + b, 0), y);
+    });
+    y += headerHeight;
+  }
+
+  // Draw initial headers
+  drawHeaders();
 
   // Add table data
   doc.setFontSize(10);
+  doc.setFont("Helvetica", "normal");
+
   filteredResults.forEach((row, index) => {
-    y += 10;
-    doc.text(row["Institute Code"], 20, y);
-    doc.text(row["Institute Name"].substring(0, 15) + (row["Institute Name"].length > 15 ? "..." : ""), 50, y);
-    doc.text(row["District Name"], 80, y);
-    doc.text(row["Region"], 110, y);
-    doc.text((row[category] || "N/A").toString(), 140, y);
-    doc.text(row["Course Type"], 170, y);
+    // Check if adding a new row exceeds page height
+    if (y + rowHeight > maxContentHeight) {
+      doc.addPage(); // Add a new page
+      y = margin; // Reset y to top of new page
+      drawHeaders(); // Redraw headers on new page
+    }
+
+    // Draw row data
+    doc.text(row["Institute Code"], margin, y);
+    doc.text(
+      row["Institute Name"].substring(0, 25) + (row["Institute Name"].length > 25 ? "..." : ""),
+      margin + columnWidths[0],
+      y
+    );
+    doc.text(row["District Name"], margin + columnWidths[0] + columnWidths[1], y);
+    doc.text(row["Region"], margin + columnWidths[0] + columnWidths[1] + columnWidths[2], y);
+    doc.text((row[category] || "N/A").toString(), margin + columnWidths[0] + columnWidths[1] + columnWidths[2] + columnWidths[3], y);
+    doc.text(row["Course Type"], margin + columnWidths[0] + columnWidths[1] + columnWidths[2] + columnWidths[3] + columnWidths[4], y);
+
+    y += rowHeight; // Move to next row
   });
 
   // Save the PDF
