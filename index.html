@@ -1281,7 +1281,7 @@
             
             <div class="form-group">
               <label for="icetRank">ICET Rank</label>
-              <input type="number" id="icetRank" min="1" required value="10000" />
+              <input type="number" id="icetRank" min="1" placeholder="Enter Your Rank"/>
             </div>
             
             <div class="form-group">
@@ -1350,11 +1350,22 @@
                 <option value="MBA-MLS">MBA-MLS</option>
               </select>
             </div>
+
+
+            <div class="form-group">
+            <label for="region">Region</label>
+            <select id="region" required onchange="updateDistrictOptions()">
+            <option value="All" selected>All</option>
+            <option value="SVU">SVU</option>
+            <option value="AU">AU</option>
+            <option value="SW">SW</option>
+            </select>
+            </div>
             
             <div class="form-group">
-              <label for="district">District</label>
-              <select id="district" required>
-                <option value="All" selected>All</option>
+            <label for="district">District</label>
+            <select id="district" required onchange="updateAffiliationOptions()">
+            <option value="All" selected>All</option>
                 <option value="ATP">ATP</option>
                 <option value="PKS">PKS</option>
                 <option value="EG">EG</option>
@@ -1371,20 +1382,12 @@
               </select>
             </div>
             
-            <div class="form-group">
-              <label for="region">Region</label>
-              <select id="region" required>
-                <option value="All" selected>All</option>
-                <option value="SVU">SVU</option>
-                <option value="AU">AU</option>
-                <option value="SW">SW</option>
-              </select>
-            </div>
+
             
-            <div class="form-group">
+              <div class="form-group">
               <label for="university">Affiliated To</label>
               <select id="university" required>
-                <option value="All" selected>All</option>
+              <option value="All" selected>All</option>
                 <option value="JNTUA">JNTUA</option>
                 <option value="AKU">AKU</option>
                 <option value="JNTUK">JNTUK</option>
@@ -1654,6 +1657,7 @@
   </footer>
 
   <script>
+    
    // Data for College Predictor Json File
     const collegeData = [
   {
@@ -50018,344 +50022,409 @@
   }
 ];
 
-    let filteredResults = [];
+// Add this to your existing collegeData array
+const regionDistrictAffiliation = {
+  regions: {
+    "AU": ["PKS", "EG", "SKL", "VSP", "VZM", "WG", "KRI", "GTR"],
+    "SVU": ["ATP", "KNL", "KDP", "CTR", "NLR"],
+    "SW": ["CTR"]
+  },
+  affiliations: {
+    "PKS": ["AKU", "JNTUK"],
+    "EG": ["JNTUK", "AKNU"],
+    "SKL": ["JNTUK", "BRAU"],
+    "VSP": ["AU", "JNTUK", "JNTUGV"],
+    "VZM": ["AU", "JNTUK"],
+    "WG": ["AKNU", "JNTUK"],
+    "KRI": ["KSUM", "JNTUK"],
+    "GTR": ["ANU", "JNTUK", "SRMU"],
+    "ATP": ["JNTUA", "SKU", "SKUA"],
+    "KNL": ["AHUU", "JNTUA", "RSUK"],
+    "KDP": ["JNTUA", "YGVU"],
+    "CTR": ["JNTUA", "SVU", "TAU", "CREA", "DRAV", "SPMU"],
+    "NLR": ["VSPU", "JNTUA"]
+  }
+};
+let filteredResults = [];
 
-    // Profile photos array with your local paths
-    const profilePhotos = [
-      "pic1.jpeg",
-      "pic2.jpeg",
-      "pic3.jpeg",
-    ];
-    let currentPhotoIndex = 0;
-    let photoInterval;
+// Profile photos
+const profilePhotos = ["pic1.jpeg", "pic2.jpeg", "pic3.jpeg"];
+let currentPhotoIndex = 0;
+let photoInterval;
 
-    function changeProfilePhoto() {
-      const profilePhoto = document.getElementById('profilePhoto');
-      if (profilePhoto) {
-        profilePhoto.style.opacity = 0;
-        setTimeout(() => {
-          currentPhotoIndex = (currentPhotoIndex + 1) % profilePhotos.length;
-          profilePhoto.src = profilePhotos[currentPhotoIndex];
-          profilePhoto.style.opacity = 1;
-        }, 500);
-      }
+// Update district options based on selected region
+function updateDistrictOptions() {
+  const region = document.getElementById("region").value;
+  const districtSelect = document.getElementById("district");
+  
+  districtSelect.innerHTML = '<option value="All">All Districts</option>';
+  
+  if (region === "All") {
+    // Show all districts
+    const allDistricts = new Set();
+    Object.values(regionDistrictAffiliation.regions).forEach(districts => {
+      districts.forEach(district => allDistricts.add(district));
+    });
+    Array.from(allDistricts).forEach(district => {
+      districtSelect.innerHTML += `<option value="${district}">${district}</option>`;
+    });
+  } else {
+    // Show only districts in selected region
+    regionDistrictAffiliation.regions[region].forEach(district => {
+      districtSelect.innerHTML += `<option value="${district}">${district}</option>`;
+    });
+  }
+  
+  updateAffiliationOptions();
+}
+
+// Update affiliation options based on selected district
+function updateAffiliationOptions() {
+  const district = document.getElementById("district").value;
+  const affiliationSelect = document.getElementById("university");
+  
+  affiliationSelect.innerHTML = '<option value="All">All Affiliations</option>';
+  
+  if (district === "All" || !regionDistrictAffiliation.affiliations[district]) {
+    // Show all affiliations
+    const allAffiliations = new Set();
+    Object.values(regionDistrictAffiliation.affiliations).forEach(affils => {
+      affils.forEach(affil => allAffiliations.add(affil));
+    });
+    Array.from(allAffiliations).forEach(affil => {
+      affiliationSelect.innerHTML += `<option value="${affil}">${affil}</option>`;
+    });
+  } else {
+    // Show only affiliations for selected district
+    regionDistrictAffiliation.affiliations[district].forEach(affil => {
+      affiliationSelect.innerHTML += `<option value="${affil}">${affil}</option>`;
+    });
+  }
+}
+
+// Profile photo functions
+function changeProfilePhoto() {
+  const profilePhoto = document.getElementById('profilePhoto');
+  if (profilePhoto) {
+    profilePhoto.style.opacity = 0;
+    setTimeout(() => {
+      currentPhotoIndex = (currentPhotoIndex + 1) % profilePhotos.length;
+      profilePhoto.src = profilePhotos[currentPhotoIndex];
+      profilePhoto.style.opacity = 1;
+    }, 500);
+  }
+}
+
+function startPhotoRotation() {
+  if (photoInterval) clearInterval(photoInterval);
+  photoInterval = setInterval(changeProfilePhoto, 5000);
+  const profilePhoto = document.getElementById('profilePhoto');
+  if (profilePhoto) profilePhoto.src = profilePhotos[0];
+}
+
+function stopPhotoRotation() {
+  if (photoInterval) clearInterval(photoInterval);
+}
+
+// Theme toggle function
+function toggleTheme() {
+  const html = document.documentElement;
+  const currentTheme = html.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  
+  const themeToggle = document.querySelector('.theme-toggle');
+  if (themeToggle) {
+    themeToggle.innerHTML = `<i class="fas fa-${newTheme === 'dark' ? 'moon' : 'sun'}"></i> <span>Toggle Theme</span>`;
+  }
+  
+  const mobileThemeToggle = document.querySelector('.mobile-menu .theme-toggle');
+  if (mobileThemeToggle) {
+    mobileThemeToggle.innerHTML = `<i class="fas fa-${newTheme === 'dark' ? 'moon' : 'sun'}"></i> <span>Toggle Theme</span>`;
+  }
+}
+
+// Check for saved theme preference
+if (localStorage.getItem('theme') === 'dark') {
+  document.documentElement.setAttribute('data-theme', 'dark');
+  const themeToggle = document.querySelector('.theme-toggle');
+  if (themeToggle) {
+    themeToggle.innerHTML = '<i class="fas fa-sun"></i> <span>Toggle Theme</span>';
+  }
+}
+
+// Mobile menu toggle
+function toggleMobileMenu() {
+  const mobileMenu = document.getElementById('mobileMenu');
+  mobileMenu.classList.toggle('active');
+  
+  const hamburger = document.querySelector('.hamburger');
+  if (mobileMenu.classList.contains('active')) {
+    hamburger.innerHTML = '<i class="fas fa-times"></i>';
+  } else {
+    hamburger.innerHTML = '<i class="fas fa-bars"></i>';
+  }
+}
+
+// Page navigation function
+function showPage(pageId) {
+  // Hide all pages
+  document.getElementById('landing-page').style.display = 'none';
+  document.getElementById('predictor-page').style.display = 'none';
+  document.getElementById('contact-page').style.display = 'none';
+  document.getElementById('about-page').style.display = 'none';
+  
+  // Show selected page
+  document.getElementById(`${pageId}-page`).style.display = pageId === 'landing' ? 'flex' : 'block';
+  
+  // Update active nav links
+  const navLinks = document.querySelectorAll('.nav-links a, .mobile-menu a');
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('onclick') === `showPage('${pageId}')`) {
+      link.classList.add('active');
+    }
+  });
+  
+  // Close mobile menu if open
+  const mobileMenu = document.getElementById('mobileMenu');
+  if (mobileMenu.classList.contains('active')) {
+    toggleMobileMenu();
+  }
+  
+  // Handle profile photo rotation
+  if (pageId === 'about') {
+    startPhotoRotation();
+  } else {
+    stopPhotoRotation();
+  }
+  
+  // Scroll to top
+  window.scrollTo(0, 0);
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', function(event) {
+  const mobileMenu = document.getElementById('mobileMenu');
+  const hamburger = document.querySelector('.hamburger');
+  
+  if (mobileMenu.classList.contains('active') && 
+      !mobileMenu.contains(event.target) && 
+      !hamburger.contains(event.target)) {
+    toggleMobileMenu();
+  }
+});
+
+// Form submission handler
+document.getElementById("predictionForm")?.addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  const submitBtn = document.getElementById("submitBtn");
+  submitBtn.classList.add("loading");
+  submitBtn.disabled = true;
+
+  setTimeout(() => {
+    const rank = parseInt(document.getElementById("icetRank").value);
+    const category = document.getElementById("category").value;
+    const rankType = document.getElementById("rankType").value;
+    const courseType = document.getElementById("courseType").value;
+    const district = document.getElementById("district").value;
+    const region = document.getElementById("region").value;
+    const affiliated = document.getElementById("university").value;
+    const collegeType = document.getElementById("collegeType").value;
+
+    if (!collegeData.length) {
+      alert("No college data available.");
+      submitBtn.classList.remove("loading");
+      submitBtn.disabled = false;
+      return;
     }
 
-    function startPhotoRotation() {
-      // Clear any existing interval
-      if (photoInterval) {
-        clearInterval(photoInterval);
-      }
-      // Start new interval
-      photoInterval = setInterval(changeProfilePhoto, 5000);
-      // Change immediately to first photo
-      const profilePhoto = document.getElementById('profilePhoto');
-      if (profilePhoto) {
-        profilePhoto.src = profilePhotos[0];
-      }
-    }
+    const tbody = document.getElementById("resultsTableBody");
+    tbody.innerHTML = "";
+    const resultsTable = document.getElementById("resultsTable");
+    const noResults = document.getElementById("noResults");
+    const downloadBtn = document.getElementById("downloadBtn");
 
-    function stopPhotoRotation() {
-      if (photoInterval) {
-        clearInterval(photoInterval);
-      }
-    }
+    function filterByRankLabel(rankLabel) {
+      return collegeData.filter(row => {
+        if (row["Value"] !== rankLabel) return false;
 
-    // Theme toggle function
-    function toggleTheme() {
-      const html = document.documentElement;
-      const currentTheme = html.getAttribute('data-theme') || 'light';
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      html.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-      
-      const themeToggle = document.querySelector('.theme-toggle');
-      if (themeToggle) {
-        themeToggle.innerHTML = `<i class="fas fa-${newTheme === 'dark' ? 'moon' : 'sun'}"></i> <span>Toggle Theme</span>`;
-      }
-      
-      // Update mobile menu theme toggle if it exists
-      const mobileThemeToggle = document.querySelector('.mobile-menu .theme-toggle');
-      if (mobileThemeToggle) {
-        mobileThemeToggle.innerHTML = `<i class="fas fa-${newTheme === 'dark' ? 'moon' : 'sun'}"></i> <span>Toggle Theme</span>`;
-      }
-    }
+        const cutoff = parseInt(row[category]) || 0;
+        const isEligible = (cutoff === 0 || rank <= cutoff);
+        const isCourseMatch = courseType === "All" || row["Course Type"] === courseType;
+        const isDistrictMatch = district === "All" || row["District Name"] === district;
+        const isRegionMatch = region === "All" || row["Region"] === region;
+        const isAffiliatedMatch = affiliated === "All" || row["Affiliated To"] === affiliated;
+        const isCollegeTypeMatch = collegeType === "All" || row["College Type"] === collegeType;
 
-    // Check for saved theme preference
-    if (localStorage.getItem('theme') === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      const themeToggle = document.querySelector('.theme-toggle');
-      if (themeToggle) {
-        themeToggle.innerHTML = '<i class="fas fa-sun"></i> <span>Toggle Theme</span>';
-      }
-    }
-
-    // Mobile menu toggle
-    function toggleMobileMenu() {
-      const mobileMenu = document.getElementById('mobileMenu');
-      mobileMenu.classList.toggle('active');
-      
-      const hamburger = document.querySelector('.hamburger');
-      if (mobileMenu.classList.contains('active')) {
-        hamburger.innerHTML = '<i class="fas fa-times"></i>';
-      } else {
-        hamburger.innerHTML = '<i class="fas fa-bars"></i>';
-      }
-    }
-
-    // Page navigation function
-    function showPage(pageId) {
-      // Hide all pages
-      document.getElementById('landing-page').style.display = 'none';
-      document.getElementById('predictor-page').style.display = 'none';
-      document.getElementById('contact-page').style.display = 'none';
-      document.getElementById('about-page').style.display = 'none';
-      
-      // Show selected page
-      document.getElementById(`${pageId}-page`).style.display = pageId === 'landing' ? 'flex' : 'block';
-      
-      // Update active nav links
-      const navLinks = document.querySelectorAll('.nav-links a, .mobile-menu a');
-      navLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('onclick') === `showPage('${pageId}')`) {
-          link.classList.add('active');
-        }
+        return isEligible && isCourseMatch && isDistrictMatch && isRegionMatch && isAffiliatedMatch && isCollegeTypeMatch;
       });
-      
-      // Close mobile menu if open
-      const mobileMenu = document.getElementById('mobileMenu');
-      if (mobileMenu.classList.contains('active')) {
-        toggleMobileMenu();
-      }
-      
-      // Handle profile photo rotation
-      if (pageId === 'about') {
-        startPhotoRotation();
-      } else {
-        stopPhotoRotation();
-      }
-      
-      // Scroll to top
-      window.scrollTo(0, 0);
     }
 
-    // Close mobile menu when clicking outside
-    document.addEventListener('click', function(event) {
-      const mobileMenu = document.getElementById('mobileMenu');
-      const hamburger = document.querySelector('.hamburger');
-      
-      if (mobileMenu.classList.contains('active') && 
-          !mobileMenu.contains(event.target) && 
-          !hamburger.contains(event.target)) {
-        toggleMobileMenu();
-      }
-    });
+    filteredResults = [];
+    if (rankType === "All") {
+      const allRanks = ["AvG Rank", "Min Rank", "Max Rank"];
+      let combinedMap = new Map();
 
-    // Initialize landing page
-    showPage('landing');
-
-    // Form submission handler
-    document.getElementById("predictionForm")?.addEventListener("submit", function (e) {
-      e.preventDefault();
-
-      const submitBtn = document.getElementById("submitBtn");
-      submitBtn.classList.add("loading");
-      submitBtn.disabled = true;
-
-      setTimeout(() => {
-        const rank = parseInt(document.getElementById("icetRank").value);
-        const category = document.getElementById("category").value;
-        const rankType = document.getElementById("rankType").value;
-        const courseType = document.getElementById("courseType").value;
-        const district = document.getElementById("district").value;
-        const region = document.getElementById("region").value;
-        const affiliated = document.getElementById("university").value;
-        const collegeType = document.getElementById("collegeType").value;
-
-        if (!collegeData.length) {
-          alert("No college data available.");
-          submitBtn.classList.remove("loading");
-          submitBtn.disabled = false;
-          return;
-        }
-
-        const tbody = document.getElementById("resultsTableBody");
-        tbody.innerHTML = "";
-        const resultsTable = document.getElementById("resultsTable");
-        const noResults = document.getElementById("noResults");
-        const downloadBtn = document.getElementById("downloadBtn");
-
-        function filterByRankLabel(rankLabel) {
-          return collegeData.filter(row => {
-            if (row["Value"] !== rankLabel) return false;
-
-            const cutoff = parseInt(row[category]) || 0;
-            const isEligible = (cutoff === 0 || rank <= cutoff);
-            const isCourseMatch = courseType === "All" || row["Course Type"] === courseType;
-            const isDistrictMatch = district === "All" || row["District Name"] === district;
-            const isRegionMatch = region === "All" || row["Region"] === region;
-            const isAffiliatedMatch = affiliated === "All" || row["Affiliated To"] === affiliated;
-            const isCollegeTypeMatch = collegeType === "All" || row["College Type"] === collegeType;
-
-            return isEligible && isCourseMatch && isDistrictMatch && isRegionMatch && isAffiliatedMatch && isCollegeTypeMatch;
-          });
-        }
-
-        filteredResults = [];
-        if (rankType === "All") {
-          const allRanks = ["AvG Rank", "Min Rank", "Max Rank"];
-          let combinedMap = new Map();
-
-          allRanks.forEach(rType => {
-            const results = filterByRankLabel(rType);
-            results.forEach(r => {
-              const key = `${r["Institute Code"]}__${r["Course Type"]}`;
-              if (!combinedMap.has(key)) {
-                combinedMap.set(key, r);
-              }
-            });
-          });
-          filteredResults = Array.from(combinedMap.values());
-        } else {
-          filteredResults = filterByRankLabel(rankType);
-        }
-
-        if (filteredResults.length > 0) {
-          resultsTable.style.display = "table";
-          noResults.style.display = "none";
-          downloadBtn.style.display = "inline-flex";
-          
-          filteredResults.forEach(row => {
-            const tr = document.createElement("tr");
-            tr.className = "fade-in";
-            tr.innerHTML = `
-              <td><span class="badge badge-primary">${row["Institute Code"]}</span></td>
-              <td class="college-name">${row["Institute Name"]}</td>
-              <td>${row["District Name"]}</td>
-              <td>${row["Region"]}</td>
-              <td class="college-rank">${row[category] || "N/A"}</td>
-              <td><span class="badge badge-success">${row["Course Type"]}</span></td>
-            `;
-            tbody.appendChild(tr);
-          });
-        } else {
-          resultsTable.style.display = "none";
-          noResults.style.display = "block";
-          downloadBtn.style.display = "none";
-        }
-
-        submitBtn.classList.remove("loading");
-        submitBtn.disabled = false;
-      }, 500);
-    });
-
-    // PDF download functionality
-    document.getElementById("downloadBtn").addEventListener("click", function () {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      // Add watermark
-      doc.setFontSize(40);
-      doc.setTextColor(200, 200, 200);
-      doc.setFont("Poppins", "normal");
-      doc.text("Bhargav'z Buzz", 20, 200, { angle: 45 });
-
-      // Add title
-      doc.setFontSize(20);
-      doc.setTextColor(33, 37, 41);
-      doc.text("AP ICET College Prediction Results", 20, 20);
-
-      // Add input parameters
-      const rank = document.getElementById("icetRank").value;
-      const category = document.getElementById("category").value;
-      const rankType = document.getElementById("rankType").value;
-      const courseType = document.getElementById("courseType").value;
-      const district = document.getElementById("district").value;
-      const region = document.getElementById("region").value;
-      const university = document.getElementById("university").value;
-      const collegeType = document.getElementById("collegeType").value;
-
-      doc.setFontSize(12);
-      doc.text(`ICET Rank: ${rank}`, 20, 40);
-      doc.text(`Category: ${category}`, 20, 50);
-      doc.text(`Rank Type: ${rankType}`, 20, 60);
-      doc.text(`Course Type: ${courseType}`, 20, 70);
-      doc.text(`District: ${district}`, 20, 80);
-      doc.text(`Region: ${region}`, 20, 90);
-      doc.text(`Affiliated To: ${university}`, 20, 100);
-      doc.text(`College Type: ${collegeType}`, 20, 110);
-
-      // Add table headers
-      doc.setFontSize(12);
-      const headers = ["Institute Code", "Institute Name", "District", "Region", "Rank", "Course"];
-      let y = 130;
-      headers.forEach((header, index) => {
-        doc.text(header, 20 + index * 30, y);
+      allRanks.forEach(rType => {
+        const results = filterByRankLabel(rType);
+        results.forEach(r => {
+          const key = `${r["Institute Code"]}__${r["Course Type"]}`;
+          if (!combinedMap.has(key)) {
+            combinedMap.set(key, r);
+          }
+        });
       });
+      filteredResults = Array.from(combinedMap.values());
+    } else {
+      filteredResults = filterByRankLabel(rankType);
+    }
 
-      // Add table data
-      doc.setFontSize(10);
-      filteredResults.forEach((row, index) => {
-        y += 10;
-        doc.text(row["Institute Code"], 20, y);
-        doc.text(row["Institute Name"].substring(0, 15) + (row["Institute Name"].length > 15 ? "..." : ""), 50, y);
-        doc.text(row["District Name"], 80, y);
-        doc.text(row["Region"], 110, y);
-        doc.text((row[category] || "N/A").toString(), 140, y);
-        doc.text(row["Course Type"], 170, y);
+    if (filteredResults.length > 0) {
+      resultsTable.style.display = "table";
+      noResults.style.display = "none";
+      downloadBtn.style.display = "inline-flex";
+      
+      filteredResults.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.className = "fade-in";
+        tr.innerHTML = `
+          <td><span class="badge badge-primary">${row["Institute Code"]}</span></td>
+          <td class="college-name">${row["Institute Name"]}</td>
+          <td>${row["District Name"]}</td>
+          <td>${row["Region"]}</td>
+          <td class="college-rank">${row[category] || "N/A"}</td>
+          <td><span class="badge badge-success">${row["Course Type"]}</span></td>
+        `;
+        tbody.appendChild(tr);
       });
-
-      // Save the PDF
-      doc.save("AP_ICET_Prediction_Results.pdf");
-    });
-    // Protection functions
-    function showProtectionMessage() {
-      document.getElementById('protectionMessage').style.display = 'block';
-      document.getElementById('protectionOverlay').style.display = 'block';
+    } else {
+      resultsTable.style.display = "none";
+      noResults.style.display = "block";
+      downloadBtn.style.display = "none";
     }
-    
-    function hideProtectionMessage() {
-      document.getElementById('protectionMessage').style.display = 'none';
-      document.getElementById('protectionOverlay').style.display = 'none';
-    }
-    
-    // Disable right-click
-    document.addEventListener('contextmenu', function(e) {
-      e.preventDefault();
-      showProtectionMessage();
-    });
-    
-    // Disable keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-      // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-      if (e.key === 'F12' || 
-          (e.ctrlKey && e.shiftKey && e.key === 'I') || 
-          (e.ctrlKey && e.shiftKey && e.key === 'J') || 
-          (e.ctrlKey && e.key === 'u')) {
-        e.preventDefault();
-        showProtectionMessage();
-      }
-    });
-    
-    // Disable text selection (optional)
-    document.addEventListener('selectstart', function(e) {
-      e.preventDefault();
-    });
-    
-    // Disable drag and drop
-    document.addEventListener('dragstart', function(e) {
-      e.preventDefault();
-    });
 
-// Initialize profile photo with first image
-    window.addEventListener('DOMContentLoaded', function() {
-      const profilePhoto = document.getElementById('profilePhoto');
-      if (profilePhoto && profilePhotos.length > 0) {
-        profilePhoto.src = profilePhotos[0];
-      }
-    });
+    submitBtn.classList.remove("loading");
+    submitBtn.disabled = false;
+  }, 500);
+});
 
+// PDF download functionality
+document.getElementById("downloadBtn").addEventListener("click", function () {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  // Add watermark
+  doc.setFontSize(40);
+  doc.setTextColor(200, 200, 200);
+  doc.setFont("Poppins", "normal");
+  doc.text("Bhargav'z Buzz", 20, 200, { angle: 45 });
+
+  // Add title
+  doc.setFontSize(20);
+  doc.setTextColor(33, 37, 41);
+  doc.text("AP ICET College Prediction Results", 20, 20);
+
+  // Add input parameters
+  const rank = document.getElementById("icetRank").value;
+  const category = document.getElementById("category").value;
+  const rankType = document.getElementById("rankType").value;
+  const courseType = document.getElementById("courseType").value;
+  const district = document.getElementById("district").value;
+  const region = document.getElementById("region").value;
+  const university = document.getElementById("university").value;
+  const collegeType = document.getElementById("collegeType").value;
+
+  doc.setFontSize(12);
+  doc.text(`ICET Rank: ${rank}`, 20, 40);
+  doc.text(`Category: ${category}`, 20, 50);
+  doc.text(`Rank Type: ${rankType}`, 20, 60);
+  doc.text(`Course Type: ${courseType}`, 20, 70);
+  doc.text(`District: ${district}`, 20, 80);
+  doc.text(`Region: ${region}`, 20, 90);
+  doc.text(`Affiliated To: ${university}`, 20, 100);
+  doc.text(`College Type: ${collegeType}`, 20, 110);
+
+  // Add table headers
+  doc.setFontSize(12);
+  const headers = ["Institute Code", "Institute Name", "District", "Region", "Rank", "Course"];
+  let y = 130;
+  headers.forEach((header, index) => {
+    doc.text(header, 20 + index * 30, y);
+  });
+
+  // Add table data
+  doc.setFontSize(10);
+  filteredResults.forEach((row, index) => {
+    y += 10;
+    doc.text(row["Institute Code"], 20, y);
+    doc.text(row["Institute Name"].substring(0, 15) + (row["Institute Name"].length > 15 ? "..." : ""), 50, y);
+    doc.text(row["District Name"], 80, y);
+    doc.text(row["Region"], 110, y);
+    doc.text((row[category] || "N/A").toString(), 140, y);
+    doc.text(row["Course Type"], 170, y);
+  });
+
+  // Save the PDF
+  doc.save("AP_ICET_Prediction_Results.pdf");
+});
+
+// Protection functions
+function showProtectionMessage() {
+  document.getElementById('protectionMessage').style.display = 'block';
+  document.getElementById('protectionOverlay').style.display = 'block';
+}
+
+function hideProtectionMessage() {
+  document.getElementById('protectionMessage').style.display = 'none';
+  document.getElementById('protectionOverlay').style.display = 'none';
+}
+
+// Disable right-click
+document.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  showProtectionMessage();
+});
+
+// Disable keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'F12' || 
+      (e.ctrlKey && e.shiftKey && e.key === 'I') || 
+      (e.ctrlKey && e.shiftKey && e.key === 'J') || 
+      (e.ctrlKey && e.key === 'u')) {
+    e.preventDefault();
+    showProtectionMessage();
+  }
+});
+
+// Disable text selection
+document.addEventListener('selectstart', function(e) {
+  e.preventDefault();
+});
+
+// Disable drag and drop
+document.addEventListener('dragstart', function(e) {
+  e.preventDefault();
+});
+
+// Initialize the page
+window.addEventListener('DOMContentLoaded', function() {
+  // Initialize profile photo
+  const profilePhoto = document.getElementById('profilePhoto');
+  if (profilePhoto && profilePhotos.length > 0) {
+    profilePhoto.src = profilePhotos[0];
+  }
+  
+  // Initialize the filters
+  document.getElementById("region").addEventListener("change", updateDistrictOptions);
+  document.getElementById("district").addEventListener("change", updateAffiliationOptions);
+  updateDistrictOptions(); // Initialize the options when page loads
+  
+  // Initialize landing page
+  showPage('landing');
+});
   </script>
 </body>
 </html>
